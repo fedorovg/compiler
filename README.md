@@ -10,10 +10,136 @@ You need to have go 1.16 or later on your system. Go should download the llvm go
 
 To actually create an executable from ir via `mila` script you need to have LLVM toolchain installed.
 
-# Example
+# Examples
+
+## Simple
+	
+  ```pascal
+  program factorial;
+
+function facti(n : integer) : integer;
+begin
+    facti := 1;
+    while n > 1 do
+    begin
+        facti := facti * n;
+        dec(n);
+    end
+end;    
+
+function factr(n : integer) : integer;
+begin
+    if n = 1 then 
+        factr := 1
+    else
+        factr := n * factr(n-1);
+end;    
+
+begin
+    writeln(facti(5));
+    writeln(factr(5));
+end.
+
+  ```
 
 <details>
+  <summary>Emitted IR</summary>
+	
+  ```assembly
+source_filename = "factorial"
+
+declare i32 @writeln(i32 %x)
+
+declare i32 @write(i8* %x)
+
+declare i32 @readln(i32* %x)
+
+define i32 @inc(i32* %x) {
+entry:
+	%0 = load i32, i32* %x
+	%1 = add i32 %0, 1
+	store i32 %1, i32* %x
+	ret i32 0
+}
+
+define i32 @dec(i32* %x) {
+entry:
+	%0 = load i32, i32* %x
+	%1 = sub i32 %0, 1
+	store i32 %1, i32* %x
+	ret i32 0
+}
+
+define i32 @facti(i32 %n) {
+entry:
+	%0 = alloca i32
+	%1 = alloca i32
+	store i32 %n, i32* %1
+	store i32 1, i32* %0
+	%2 = load i32, i32* %1
+	%3 = icmp sgt i32 %2, 1
+	br i1 %3, label %4, label %11
+
+4:
+	%5 = load i32, i32* %0
+	%6 = load i32, i32* %1
+	%7 = mul i32 %5, %6
+	store i32 %7, i32* %0
+	%8 = call i32 @dec(i32* %1)
+	%9 = load i32, i32* %1
+	%10 = icmp sgt i32 %9, 1
+	br i1 %10, label %4, label %11
+
+11:
+	%12 = load i32, i32* %0
+	ret i32 %12
+}
+
+define i32 @factr(i32 %n) {
+entry:
+	%0 = alloca i32
+	%1 = alloca i32
+	store i32 %n, i32* %1
+	%2 = load i32, i32* %1
+	%3 = icmp eq i32 %2, 1
+	br i1 %3, label %4, label %5
+
+4:
+	store i32 1, i32* %0
+	br label %11
+
+5:
+	%6 = load i32, i32* %1
+	%7 = load i32, i32* %1
+	%8 = sub i32 %7, 1
+	%9 = call i32 @factr(i32 %8)
+	%10 = mul i32 %6, %9
+	store i32 %10, i32* %0
+	br label %11
+
+11:
+	%12 = load i32, i32* %0
+	ret i32 %12
+}
+
+define i32 @main() {
+entry:
+	%0 = alloca i32
+	%1 = call i32 @facti(i32 5)
+	%2 = call i32 @writeln(i32 %1)
+	%3 = call i32 @factr(i32 5)
+	%4 = call i32 @writeln(i32 %3)
+	ret i32 0
+}
+
+
+  ```
+</details>
+
+## Complex
+<details>
   <summary>Input source</summary>
+	
   ```pascal
   program gcd;
 
@@ -67,6 +193,7 @@ end.
 
 <details>
   <summary>Emitted IR</summary>
+	
   ```assembly
   source_filename = "gcd"
 
@@ -229,7 +356,6 @@ entry:
 
   ```
 </details>
-
 
 
 # Build
