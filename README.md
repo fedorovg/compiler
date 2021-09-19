@@ -1,6 +1,6 @@
 # Compiler
 
-This is program compiles a subset of Pascal language into LLVM ir. 
+This is a compiler for a subset of pascal language written in go.
 
 # Dependencies 
 
