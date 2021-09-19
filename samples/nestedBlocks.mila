@@ -1,0 +1,13 @@
+program nestedBlocks;
+var
+	x: integer;
+begin
+	x := 1;
+	var
+		x: integer;
+	begin
+		x := 2;
+		writeln(x);
+	end;
+	writeln(x);
+end.
